@@ -45,11 +45,14 @@ mongoose.connect("mongodb://localhost:/scrapey");
 //GET route for scraping echo website
 app.get("/scrape", function (req, res){
 	//grab body of html with request
-	request("http://www.echojs.com/", function(error, response, html){
+
+	// request("http://www.echojs.com/", function(error, response, html){
+	request("https://www.allrecipes.com/", function(error, response, html){	
 		//load the http website into cheerio and save the variable
 		let $ = cheerio.load(html);
 
-		$("article h2").each(function(i, element){
+		// $("article h2").each(function(i, element){
+		$("article h3").each(function(i, element){	
 			var result = {};
 
 			//add text and href of every link
@@ -63,8 +66,8 @@ app.get("/scrape", function (req, res){
 				console.log(result.link)
 
 			//recipe model creates new recipe
-			var newRecipe = new Recipe(req.body);
-			console.log(newRecipe);	
+			var newRecipe = new Recipe(result);
+			console.log(newRecipe,"newrecipe");	
 
 			//save to db
 			newRecipe.save(function(err, res){
@@ -82,34 +85,49 @@ app.get("/scrape", function (req, res){
 });
 
 //Route for getting all recipes from the db
-app.get("/recipe", function(req, res){
+app.get("/recipes", function(req, res){
 	// console.log("hello there")
-	db.Recipe.find({})
-	.then(function (dbRecipe){
-		res.json(dbRecipe);
-	})
-	.catch(function (err){
-		res.json(err);
+	Recipe.find({}, function(err, result){
+		if(err){
+			console.log(err);
+		}
+		else{
+			console.log("heyyyyyy there",result)
+			return res.json(result)
+		}
 	})
 });
 
 //route for grabbing specific recipe by id, populate with note
 app.get("/recipes/:id", function(req, res){
-	db.Recipe.findOne({_id: req.params.id})
+	Recipe.findOne({_id: req.params.id})
 	.populate("note")
-	.then(function(dbRecipe){
-		console.log(dbRecipe)
-		res.json(dbRecipe)
-	})
-	.catch(function(err){
-		res.json(err);
+	.then(function(err, results){
+		console.log("id and note: " + Recipe)
+		if(err){
+			console.log(err);
+		}
+		else{
+			res.json(results);
+		}
 	})
 });
 
 //route for saving/updating recipe's associated note
-// app.post("recipes/:id", function(req, res){
-// 	db.Note.create(req.body)
-// })
+app.post("/recipes/:id", function(req, res){
+	//create new note
+	var newNote = new Note(req.body);
+
+	//save new note to database
+	newNote.save(function(err, result){
+		if(err){
+			console.log(err);
+		}
+		else{
+			Recipe.findOneAndUpdate({_id: req.params.id}, {"note": result._id})
+		}
+	})
+});
 
 /////////////////START THE SERVER/////////////////
 app.listen(PORT, function(){
