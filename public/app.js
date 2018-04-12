@@ -18,9 +18,10 @@ $(document).on("click", "p", function(){
         method: "GET",
         url: "/recipes/" + thisId
     })
-    .done(function(data){
-        console.log("hi hi hi hi")
-        console.log(data);
+        // console.log("line 21")
+    
+    .then(function(data){
+        // console.log(data);
       // The title of the recipe
       $("#notes").append("<h2>" + data.title + "</h2>");
       // An input to enter a new title
@@ -39,3 +40,33 @@ $(document).on("click", "p", function(){
       }
     });
 });
+
+// Save note on click event
+$(document).on("click", "#savenote", function() {
+    // Grab id associated with the recipe from the submit button
+    var thisId = $(this).attr("data-id");
+  
+    // Run a POST request to change the note, using what's entered in the inputs
+    $.ajax({
+      method: "POST",
+      url: "/recipes/" + thisId,
+      data: {
+        // Value taken from title input
+        title: $("#titleinput").val(),
+        // Value taken from note textarea
+        body: $("#bodyinput").val()
+      }
+    })
+      // With that done
+      .done(function(data) {
+        // Log the response
+        console.log(data);
+        // Empty the notes section
+        $("#notes").empty();
+      });
+  
+    // Also, remove the values entered in the input and textarea for note entry
+    $("#titleinput").val("");
+    $("#bodyinput").val("");
+  });
+  

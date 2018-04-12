@@ -5,8 +5,12 @@ var Schema = mongoose.Schema;
 
 //create new noteschema object
 var NoteSchema = new Schema({
-    title: String,
-    body: String
+    title: {
+        type: String
+    },
+    body: {
+        type: String
+    }
 });
 
 //create model using mongoose model method

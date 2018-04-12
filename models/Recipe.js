@@ -7,11 +7,12 @@ var Schema = mongoose.Schema;
 var RecipeSchema = new Schema({
     title: {
         type: String,
-        // required: true
+        required: true,
+        unique: true
     },
     link: {
         type: String,
-        // required: true
+        required: true
     },
     note: {
         type: Schema.Types.ObjectId,

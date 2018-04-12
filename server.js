@@ -67,7 +67,7 @@ app.get("/scrape", function (req, res){
 
 			//recipe model creates new recipe
 			var newRecipe = new Recipe(result);
-			console.log(newRecipe,"newrecipe");	
+			// console.log(newRecipe,"newrecipe");	
 
 			//save to db
 			newRecipe.save(function(err, res){
@@ -81,18 +81,19 @@ app.get("/scrape", function (req, res){
 		})	
 	});
 	console.log("scrape complete");
-	res.redirect("/");
+	// res.send("Scrape Complete");
+	res.redirect("/")
 });
 
 //Route for getting all recipes from the db
 app.get("/recipes", function(req, res){
-	// console.log("hello there")
+	console.log("line 89")
 	Recipe.find({}, function(err, result){
 		if(err){
 			console.log(err);
 		}
 		else{
-			console.log("heyyyyyy there",result)
+			console.log("line 95: ",result)
 			return res.json(result)
 		}
 	})
@@ -100,34 +101,52 @@ app.get("/recipes", function(req, res){
 
 //route for grabbing specific recipe by id, populate with note
 app.get("/recipes/:id", function(req, res){
+	console.log("line 104:" + req.params.id)
 	Recipe.findOne({_id: req.params.id})
 	.populate("note")
-	.then(function(err, results){
-		console.log("id and note: " + Recipe)
-		if(err){
-			console.log(err);
-		}
-		else{
-			res.json(results);
-		}
+	.then((Recipe) => {
+		console.log(Recipe)
+		res.json(Recipe)
+	})
+	.catch((err) => {
+		res.json(err)
 	})
 });
 
 //route for saving/updating recipe's associated note
-app.post("/recipes/:id", function(req, res){
-	//create new note
-	var newNote = new Note(req.body);
+// app.post("/recipes/:id", function(req, res){
+// 	//create new note
+// 	var newNote = new Note(req.body);
 
-	//save new note to database
-	newNote.save(function(err, result){
-		if(err){
-			console.log(err);
-		}
-		else{
-			Recipe.findOneAndUpdate({_id: req.params.id}, {"note": result._id})
-		}
-	})
-});
+// 	//save new note to database
+// 	newNote.save(function(err, result){
+// 		if(err){
+// 			console.log(err);
+// 		}
+// 		else{
+// 			Recipe.findOneAndUpdate({_id: req.params.id}, {"note": result._id})
+// 		}
+// 	})
+// });
+
+app.post("/recipes/:id", function(req, res) {
+	// TODO
+	// ====
+	// save the new note that gets posted to the Notes collection
+	// then find an article from the req.params.id
+	// and update it's "note" property with the _id of the new note
+	Note.create(req.body)
+	  .then((Note) => {
+		console.log(Note._id)
+		return db.Recipe.findOneAndUpdate({ _id: req.params.id}, {note: Note._id}, {new: true})
+	  })
+	  .then((Recipe) =>{
+		res.json(Recipe);
+	  })
+	  .catch((err) => {
+		res.json(err);
+	  })
+  });
 
 /////////////////START THE SERVER/////////////////
 app.listen(PORT, function(){
